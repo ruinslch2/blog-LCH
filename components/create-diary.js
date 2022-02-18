@@ -14,26 +14,3 @@ export default function CreateDiary(props) {
         />
     )
 }
-
-// import React, { useState } from "react";
-
-// const Jodit = React.lazy(() => {
-//   return import("jodit-react");
-// });
-
-// export default function CreateDiary() {
-//     console.log('is: ', isSSR)
-//   const [value, setValue] = useState("");
-//   const isSSR = typeof window === "undefined";
-  
-//   return (
-//     <Jodit value={value} onChange={(val) => setValue(val)}/>
-//   )
-// //   return (
-// //     <>
-// //       {!isSSR && (
-// //           <Jodit value={value} onChange={(val) => setValue(val)}/>
-// //       )}
-// //     </>
-// //   );
-// };
