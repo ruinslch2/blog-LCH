@@ -16,7 +16,7 @@ const CreateDiary = dynamic(
         title: title,
         content: value,
     }
-    await fetch('http://localhost:3000/api/hello', {
+    await fetch('http://54.146.176.96:3000/api/postDiary', {
         method: 'POST',
         body: JSON.stringify(data),
     }).then(response => response.json()).then(result => {
