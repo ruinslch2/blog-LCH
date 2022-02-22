@@ -26,13 +26,11 @@ export default async function diaryToMarkdown(req, res) {
     markdown = `---
     title: '${data.title}'
     excerpt: '${introduce}'
-    coverImage: '/assets/blog/dynamic-routing/cover.jpg'
+    coverImage: '${data.coverImg}'
     date: '${new Date().toISOString()}'
     author:
-      name: JJ Kasper
+      name: LCH
       picture: '/assets/blog/authors/jj.jpeg'
-    ogImage:
-      url: '/assets/blog/dynamic-routing/cover.jpg'
 ---
 ` + markdown;
     fs.writeFileSync(`./_posts/${Date.now()}.md`, markdown)
@@ -40,3 +38,5 @@ export default async function diaryToMarkdown(req, res) {
 
     res.status(200).json({ text: 'Hello' })
 }
+
+

@@ -27,7 +27,7 @@ export default function Post({ post, morePosts, preview }) {
             <article className="mb-32">
               <Head>
                 <title>
-                  {post.title} | Next.js Blog Example with {CMS_NAME}
+                  {post.title}
                 </title>
               </Head>
               <PostHeader
@@ -55,6 +55,7 @@ export async function getStaticProps({ params }) {
     'ogImage',
     'coverImage',
   ])
+
   const content = await markdownToHtml(post.content || '')
 
   return {
@@ -69,7 +70,7 @@ export async function getStaticProps({ params }) {
 
 export async function getStaticPaths() {
   const posts = getAllPosts(['slug'])
-
+  // console.log('posts: ', posts)
   return {
     paths: posts.map((post) => {
       return {
