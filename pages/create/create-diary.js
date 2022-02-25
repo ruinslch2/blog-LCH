@@ -6,6 +6,9 @@ import { Grid } from '@nextui-org/react';
 import Header from '../../components/header'
 import Head from 'next/head'
 import Button from '@material-ui/core/Button';
+import getConfig from 'next/config'
+
+const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 
 const CreateDiary = dynamic(
     () => import('../../components/create-diary'),
@@ -13,12 +16,14 @@ const CreateDiary = dynamic(
   )
 
  async function postDiary(state, value) {
+    const obj = parseImgTag(value);
+    const content = await uploadImg(obj);
     const data = {
         title: state.title,
-        coverImg: state.coverImg,
-        content: value,
+        coverImg: content.coverImg,
+        content: content.value,
     }
-    await fetch('http://54.146.176.96:3000//api/postDiary', {
+    await fetch('http://192.168.1.67:3000/api/postDiary', {
         method: 'POST',
         body: JSON.stringify(data),
 
@@ -28,9 +33,42 @@ const CreateDiary = dynamic(
     })
 }
 
+function parseImgTag(str) {
+    const regex = /<img.*?src="([^">]*\/([^">]*?))".*?>/g;
+    let src;
+    const imgStack = [];
+    while((src = regex.exec(str)) != null) {
+        imgStack.push(src[1])
+    }
+    
+    return { content: str, imgContent: imgStack };
+}
+
+async function uploadImg(obj) {
+    const { imgContent } = obj;
+    let { content } = obj;
+    let coverImg;
+    for (let i = 0; i < imgContent.length; i++) {
+        const formData = new FormData();
+        formData.append('upload_preset', publicRuntimeConfig.cloudinary.upload_preset);
+        formData.append('file', imgContent[i]);
+        formData.append('api_key', publicRuntimeConfig.cloudinary.api_key);
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${publicRuntimeConfig.cloudinary.cloud_name}/image/upload`, {
+            method: 'POST',
+            body: formData
+        })
+        const file = await res.json();
+        content = content.replace(imgContent[i], file.secure_url);
+        if (i == 0) {
+            coverImg = file.secure_url;
+        }
+    }
+    return {value: content, coverImg: coverImg};    
+}
+
 export default function CreatePost() {
     const [value, setValue] = useState('');
-    const [state, setState] = useState({title: '', coverImg: ''});
+    const [state, setState] = useState({title: ''});
     const handleChange = e => {
         const { name, value } = e.target;
         setState(prevState => ({
@@ -38,6 +76,8 @@ export default function CreatePost() {
             [name]: value,
         }));
     }
+     console.log('value:: ', publicRuntimeConfig)
+    
     return (
         <Layout>
             <Head>
@@ -51,10 +91,6 @@ export default function CreatePost() {
                     <Grid item xs={12}>
                         <label>標題</label>
                         <input style={{ marginLeft: '2%', border: '1px solid black' }} type="text" name="title" onChange={(e) => handleChange(e)} />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <label>封面圖片</label>
-                        <input style={{ margin: '2%', border: '1px solid black' }} type="text" name="coverImg" onChange={(e) => handleChange(e)} />
                     </Grid>
                 </Grid>
                 
