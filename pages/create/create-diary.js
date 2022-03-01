@@ -23,7 +23,7 @@ const CreateDiary = dynamic(
         coverImg: content.coverImg,
         content: content.value,
     }
-    await fetch('http://192.168.1.67:3000/api/postDiary', {
+    await fetch(`http://${publicRuntimeConfig.public_url}:3000/api/postDiary`, {
         method: 'POST',
         body: JSON.stringify(data),
 
@@ -44,7 +44,7 @@ function parseImgTag(str) {
     return { content: str, imgContent: imgStack };
 }
 
-async function uploadImg(obj) {
+async function uploadImg(obj) { 
     const { imgContent } = obj;
     let { content } = obj;
     let coverImg;
@@ -58,9 +58,9 @@ async function uploadImg(obj) {
             body: formData
         })
         const file = await res.json();
-        content = content.replace(imgContent[i], file.secure_url);
+        content = content.replace(imgContent[i], file.eager[0].secure_url);
         if (i == 0) {
-            coverImg = file.secure_url;
+            coverImg = file.eager[0].secure_url;
         }
     }
     return {value: content, coverImg: coverImg};    
@@ -76,7 +76,6 @@ export default function CreatePost() {
             [name]: value,
         }));
     }
-     console.log('value:: ', publicRuntimeConfig)
     
     return (
         <Layout>
