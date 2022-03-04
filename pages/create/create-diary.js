@@ -43,58 +43,7 @@ LinearProgressWithLabel.propTypes = {
 };
 
 
-async function postDiary(state, value, progressVal, setProgress) {
-    const obj = parseImgTag(value);
-    const content = await uploadImg(obj, progressVal, setProgress);
-    const data = {
-        title: state.title,
-        coverImg: content.coverImg,
-        content: content.value,
-    }
-    await fetch(`http://${publicRuntimeConfig.public_url}:3000/api/postDiary`, {
-        method: 'POST',
-        body: JSON.stringify(data),
 
-    }).then(response => response.json()).then(result => {
-        console.log('result: ', result);
-    }).catch(error => {
-    })
-}
-
-function parseImgTag(str) {
-    const regex = /<img.*?src="([^">]*\/([^">]*?))".*?>/g;
-    let src;
-    const imgStack = [];
-    while((src = regex.exec(str)) != null) {
-        imgStack.push(src[1])
-    }
-    
-    return { content: str, imgContent: imgStack };
-}
-
-async function uploadImg(obj, progressVal, setProgress) { 
-    const { imgContent } = obj;
-    let { content } = obj;
-    let coverImg;
-    for (let i = 0; i < imgContent.length; i++) {
-        const formData = new FormData();
-        formData.append('upload_preset', publicRuntimeConfig.cloudinary.upload_preset);
-        formData.append('file', imgContent[i]);
-        formData.append('api_key', publicRuntimeConfig.cloudinary.api_key);
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${publicRuntimeConfig.cloudinary.cloud_name}/image/upload`, {
-            method: 'POST',
-            body: formData
-        })
-        const file = await res.json();
-        await setProgress(progressVal + 100.0/imgContent.length);
-
-        content = content.replace(imgContent[i], file.eager[0].secure_url);
-        if (i == 0) {
-            coverImg = file.eager[0].secure_url;
-        }
-    }
-    return {value: content, coverImg: coverImg};    
-}
 
 export default function CreatePost() {
     const [value, setValue] = useState('');
@@ -108,7 +57,60 @@ export default function CreatePost() {
             [name]: value,
         }));
     }
-    console.log('pro: ', progressVal)
+
+    async function postDiary(state, value) {
+        const obj = parseImgTag(value);
+        const content = await uploadImg(obj);
+        const data = {
+            title: state.title,
+            coverImg: content.coverImg,
+            content: content.value,
+        }
+        await fetch(`http://${publicRuntimeConfig.public_url}:3000/api/postDiary`, {
+            method: 'POST',
+            body: JSON.stringify(data),
+    
+        }).then(response => response.json()).then(result => {
+            console.log('result: ', result);
+        }).catch(error => {
+        })
+    }
+    
+    function parseImgTag(str) {
+        const regex = /<img.*?src="([^">]*\/([^">]*?))".*?>/g;
+        let src;
+        const imgStack = [];
+        while((src = regex.exec(str)) != null) {
+            imgStack.push(src[1])
+        }
+        
+        return { content: str, imgContent: imgStack };
+    }
+    
+    async function uploadImg(obj) { 
+        const { imgContent } = obj;
+        let { content } = obj;
+        let coverImg;
+        for (let i = 0; i < imgContent.length; i++) {
+            const formData = new FormData();
+            formData.append('upload_preset', publicRuntimeConfig.cloudinary.upload_preset);
+            formData.append('file', imgContent[i]);
+            formData.append('api_key', publicRuntimeConfig.cloudinary.api_key);
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${publicRuntimeConfig.cloudinary.cloud_name}/image/upload`, {
+                method: 'POST',
+                body: formData
+            })
+            const file = await res.json();
+            setProgress(((i+1)/imgContent.length) * 100);
+    
+            content = content.replace(imgContent[i], file.eager[0].secure_url);
+            if (i == 0) {
+                coverImg = file.eager[0].secure_url;
+            }
+        }
+        return {value: content, coverImg: coverImg};    
+    }
+
     return (
         <Layout>
             <Head>
@@ -129,7 +131,7 @@ export default function CreatePost() {
                 <CreateDiary content={value} setValue={setValue}/>
                 <Button
                     onClick={() => {
-                        postDiary(state, value, progressVal, setProgress);
+                        postDiary(state, value);
                     }}
                     variant="contained"
                     color="secondary"
