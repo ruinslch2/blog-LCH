@@ -10,7 +10,10 @@ import PropTypes from 'prop-types';
 import LinearProgress from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import getConfig from 'next/config'
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import getConfig from 'next/config';
 
 const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 
@@ -42,13 +45,19 @@ LinearProgressWithLabel.propTypes = {
   value: PropTypes.number.isRequired,
 };
 
-
-
-
 export default function CreatePost() {
     const [value, setValue] = useState('');
-    const [state, setState] = useState({title: ''});
+    const [state, setState] = useState({ title: '' });
     const [progressVal, setProgress] = useState(0);
+    const [open, setOpen] = React.useState(false);
+  
+    const handleClickOpen = () => {
+      setOpen(true);
+    };
+  
+    const handleClose = () => {
+      setOpen(false);
+    };
 
     const handleChange = e => {
         const { name, value } = e.target;
@@ -66,12 +75,16 @@ export default function CreatePost() {
             coverImg: content.coverImg,
             content: content.value,
         }
-        await fetch(`http://${publicRuntimeConfig.public_url}:3000/api/postDiary`, {
+        await fetch(`${publicRuntimeConfig.public_url}api/postDiary`, {
             method: 'POST',
             body: JSON.stringify(data),
     
         }).then(response => response.json()).then(result => {
-            console.log('result: ', result);
+            // 把所有內容重製
+            setValue('');
+            setState('');
+            setProgress(0);
+            setOpen(false);
         }).catch(error => {
         })
     }
@@ -122,7 +135,6 @@ export default function CreatePost() {
                 <Header />
                 <Grid container>
                     <Grid item xs={12}>
-                        <LinearProgressWithLabel value={progressVal} />
                         <label>標題</label>
                         <input style={{ marginLeft: '2%', border: '1px solid black' }} type="text" name="title" onChange={(e) => handleChange(e)} />
                     </Grid>
@@ -132,6 +144,7 @@ export default function CreatePost() {
                 <Button
                     onClick={() => {
                         postDiary(state, value);
+                        setOpen(true);
                     }}
                     variant="contained"
                     color="secondary"
@@ -140,6 +153,17 @@ export default function CreatePost() {
                     送出
                 </Button>
             </Container>
+            <Dialog
+                fullWidth={true}
+                maxWidth = {'md'}
+                open={open}
+                onClose={handleClose}
+            >
+                <DialogTitle>上傳進度</DialogTitle>
+                <DialogContent>
+                    <LinearProgressWithLabel style={{ margin: '2%' }} value={progressVal} />
+                </DialogContent>
+            </Dialog>
         </Layout>
     )
 }
