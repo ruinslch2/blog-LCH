@@ -30,7 +30,7 @@ export default async function diaryToMarkdown(req, res) {
     date: '${new Date().toISOString()}'
     author:
       name: LCH
-      picture: '/assets/blog/authors/jj.jpeg'
+      picture: '/assets/blog/authors/lch-icon.png'
 ---
 ` + markdown;
     fs.writeFileSync(`./_posts/${Date.now()}.md`, markdown)
